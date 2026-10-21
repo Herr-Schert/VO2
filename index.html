@@ -644,7 +644,7 @@
   <div class="app-shell">
     <header>
       <div class="header-title">
-        <h1>DMG Sport Ausdauer <small style="color:var(--accent)">v6</small></h1>
+        <h1>DMG Sport Ausdauer <small style="color:var(--accent)">v7</small></h1>
         <span>Kl. 5–11 (Viertelnoten) &amp; Abitur (15 NP)</span>
       </div>
       <div style="display:flex; gap:8px;">
@@ -934,7 +934,16 @@
 
     try {
       const saved = localStorage.getItem('ausdauer_bw_students_v2');
-      if (saved) state.students = JSON.parse(saved);
+      if (saved) {
+        state.students = JSON.parse(saved);
+        if (!localStorage.getItem('ausdauer_bw_nowalk_fix_v7')) {
+          state.students.forEach(function(s) { s.noWalk = false; });
+          localStorage.setItem('ausdauer_bw_students_v2', JSON.stringify(state.students));
+          localStorage.setItem('ausdauer_bw_nowalk_fix_v7', '1');
+        }
+      } else {
+        localStorage.setItem('ausdauer_bw_nowalk_fix_v7', '1');
+      }
     } catch(e) {}
 
     function getRows() {
@@ -1104,6 +1113,7 @@
           tr.classList.toggle('highlight-row', idx === res.matchedIndex);
         });
       }
+      if (typeof renderStudents === 'function') renderStudents();
     }
 
     function stepLaps(dir) {
@@ -1213,7 +1223,7 @@
         id: Date.now(),
         name: name,
         laps: 0,
-        noWalk: true,
+        noWalk: false,
         pacing: false,
         improv: 0
       });
@@ -1226,6 +1236,14 @@
       const s = state.students.find(function(x) { return x.id === id; });
       if (!s) return;
       s.laps = Math.max(0, Math.round((s.laps + delta) * 100) / 100);
+      saveStudents();
+      renderStudents();
+    }
+
+    function toggleStudentNoWalk(id) {
+      const s = state.students.find(function(x) { return x.id === id; });
+      if (!s) return;
+      s.noWalk = !s.noWalk;
       saveStudents();
       renderStudents();
     }
@@ -1252,6 +1270,16 @@
       }
     }
 
+    function getEffectiveStudentFlags(s) {
+      const globalNoWalk = document.getElementById('chkNoWalk') ? document.getElementById('chkNoWalk').checked : false;
+      const globalPacing = document.getElementById('chkPacing') ? document.getElementById('chkPacing').checked : false;
+      return {
+        noWalk: Boolean(s.noWalk || globalNoWalk),
+        pacing: Boolean(s.pacing || globalPacing),
+        improv: s.improv || state.improvBonus || 0
+      };
+    }
+
     function renderStudents() {
       const cont = document.getElementById('studentListContainer');
       if (!cont) return;
@@ -1262,7 +1290,8 @@
       const fracStep = (state.test === '6min') ? 0.5 : 0.25;
       let html = '';
       state.students.forEach(function(s) {
-        const ev = evaluatePerformance(s.laps, state.grade, state.gender, state.test, s.noWalk, s.pacing, s.improv);
+        const flags = getEffectiveStudentFlags(s);
+        const ev = evaluatePerformance(s.laps, state.grade, state.gender, state.test, flags.noWalk, flags.pacing, flags.improv);
         html += '<div class="student-item">' +
           '<div style="flex:1;min-width:130px;cursor:pointer;" onclick="editStudentName(' + s.id + ')" title="Namen bearbeiten">' +
             '<div style="font-weight:700;font-size:0.95rem;text-decoration:underline dashed rgba(255,255,255,0.4);">' + s.name + ' ✏️</div>' +
@@ -1272,7 +1301,8 @@
             '<button type="button" class="mini-btn" onclick="modStudentLaps(' + s.id + ', -' + fracStep + ')">−' + formatDe(fracStep, state.test==='6min'?1:2) + '</button>' +
             '<button type="button" class="mini-btn" onclick="modStudentLaps(' + s.id + ', ' + fracStep + ')">+' + formatDe(fracStep, state.test==='6min'?1:2) + '</button>' +
             '<button type="button" class="mini-btn plus" onclick="modStudentLaps(' + s.id + ', 1)">+1 Rd.</button>' +
-            '<button type="button" class="mini-btn" style="background:' + (s.pacing?'var(--accent)':'var(--surface)') + ';color:' + (s.pacing?'#fff':'var(--text)') + '" onclick="toggleStudentPacing(' + s.id + ')" title="Pacing-Bonus">⏱️</button>' +
+            '<button type="button" class="mini-btn" style="background:' + (flags.noWalk?'var(--accent)':'var(--surface)') + ';color:' + (flags.noWalk?'#fff':'var(--text)') + '" onclick="toggleStudentNoWalk(' + s.id + ')" title="Ohne Gehpause durchgelaufen (Bestandsgarantie 4+ beim 30-Min-Lauf)">🏃</button>' +
+            '<button type="button" class="mini-btn" style="background:' + (flags.pacing?'var(--accent)':'var(--surface)') + ';color:' + (flags.pacing?'#fff':'var(--text)') + '" onclick="toggleStudentPacing(' + s.id + ')" title="Pacing-Bonus (−0,25 Note)">⏱️</button>' +
             '<div class="grade-badge">' + ev.sym + '</div>' +
             '<button type="button" class="mini-btn" onclick="removeStudent(' + s.id + ')" style="padding:6px 8px;">✕</button>' +
           '</div>' +
@@ -1353,7 +1383,7 @@
               id: Date.now() + Math.random(),
               name: fullName,
               laps: 0,
-              noWalk: true,
+              noWalk: false,
               pacing: false,
               improv: 0
             });
@@ -1386,7 +1416,8 @@
       if (state.students.length === 0) return alert('Liste ist leer.');
       let csv = 'Name;Klassenstufe;Geschlecht;Disziplin;Runden;Meter;Pace;VO2max;Pacing_Bonus;Endnote;Dezimal\r\n';
       state.students.forEach(function(s) {
-        const ev = evaluatePerformance(s.laps, state.grade, state.gender, state.test, s.noWalk, s.pacing, s.improv);
+        const flags = getEffectiveStudentFlags(s);
+        const ev = evaluatePerformance(s.laps, state.grade, state.gender, state.test, flags.noWalk, flags.pacing, flags.improv);
         const decOut = ev.finalVal ? formatDe(ev.finalVal, 2) : ev.sym;
         csv += '"' + s.name + '";"' + state.grade + '";"' + state.gender + '";"' + state.test + '";"' + formatDe(s.laps, 2) + '";' + ev.meters + ';"' + ev.paceStr + '";"' + ev.vo2 + '";"' + (s.pacing ? 'Ja' : 'Nein') + '";"' + ev.sym + '";"' + decOut + '"\r\n';
       });
@@ -1402,7 +1433,8 @@
       if (state.students.length === 0) return alert('Liste ist leer.');
       let txt = 'Ausdauer-Ergebnisse (Kl. ' + state.grade + ' | ' + state.gender + ' | ' + state.test + '):\n';
       state.students.forEach(function(s) {
-        const ev = evaluatePerformance(s.laps, state.grade, state.gender, state.test, s.noWalk, s.pacing, s.improv);
+        const flags = getEffectiveStudentFlags(s);
+        const ev = evaluatePerformance(s.laps, state.grade, state.gender, state.test, flags.noWalk, flags.pacing, flags.improv);
         txt += '- ' + s.name + ': ' + formatDe(s.laps, 2) + ' Rd. (' + ev.meters + ' m) -> Note ' + ev.sym + ' (' + ev.decStr + ')\n';
       });
       navigator.clipboard.writeText(txt).then(function() { alert('Ergebnisliste in die Zwischenablage kopiert!'); });
