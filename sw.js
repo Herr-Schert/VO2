@@ -23,17 +23,21 @@ self.addEventListener('activate', function(event) {
   );
 });
 
+// Network-First mit Offline-Cache-Fallback:
+// Bei Netzempfang wird immer die neueste Version geladen und im Cache aktualisiert;
+// im Stadion ohne Netz startet die App direkt aus dem Cache.
 self.addEventListener('fetch', function(event) {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then(function(cached) {
-      return cached || fetch(event.request).then(function(response) {
-        return caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, response.clone());
-          return response;
-        });
-      }).catch(function() {
-        return caches.match('./index.html');
+    fetch(event.request).then(function(response) {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then(function(cache) {
+        cache.put(event.request, copy);
+      });
+      return response;
+    }).catch(function() {
+      return caches.match(event.request).then(function(cached) {
+        return cached || caches.match('./index.html');
       });
     })
   );
