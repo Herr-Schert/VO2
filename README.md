@@ -1,6 +1,2 @@
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/Herr-Schert/VO2.git
-git push -u origin main
+
+https://herr-schert.github.io/VO2/index.html
