@@ -1,0 +1,71 @@
+# DMG Sport Ausdauer (PWA)
+
+> **Web-App zur Leistungserfassung und Notenberechnung im Ausdauersport**  
+> Konzipiert für Sportlehrkräfte an Gymnasien in Baden-Württemberg (Klassen 5 bis 11 im Viertelnotensystem sowie Kursstufe/Abitur im 15-Notenpunkte-System).  
+> **Stand:** Schuljahr 2026/2027 • Dillmann-Gymnasium Stuttgart
+
+---
+
+## 🏃 Übersicht & Funktionsumfang
+
+Die Anwendung ermöglicht eine schnelle, rechtssichere und pädagogisch differenzierte Notenermittlung direkt am Spielfeldrand oder im Stadion:
+
+- **Drei standardisierte Ausdauerdisziplinen:**
+  - **6-Minuten-Hallenlauf:** Auf dem genormten Volleyballfeld (54 m Rundkurs, 9 m × 18 m).
+  - **12-Minuten-Lauf (Cooper-Test):** Auf der klassischen 400-m-Stadionbahn.
+  - **30-Minuten-Dauerlauf:** Auf der 400-m-Stadionbahn.
+- **Durchgängige Progression:** Von Klasse 5 bis 11 in Viertelnoten (1,0 / 1,25 / 1,5 ... 5,75 / 6,0) mit organischem Übergang in die 15 Notenpunkte des Abiturs Baden-Württemberg.
+- **Pädagogische Boni (Sekundarstufe I):**
+  - **Bestandsgarantie (30 Min):** Mindestens Note 4+ (3,75) bei durchgehendem Laufen ohne Gehpause.
+  - **Pacing-Bonus:** −0,25 Notenstufen bei Tempokonstanz zwischen 1. und 2. Laufhälfte (bzw. mind. Note 3– beim 30-Minuten-Lauf).
+  - **Lernzuwachs:** Belohnung individueller Steigerung zwischen Eingangs- und Abschlusstest (bis zu −0,75 Noten).
+- **Live-Klassenliste:** Schnelles Mitzählen von Runden per Touch (`+1`, `+0,25` oder `+25m`), CSV-Import für Klassenlisten und CSV-Export für das Notenbuch.
+- **100 % Offline- & PWA-fähig:** Funktioniert ohne mobiles Internet im Stadion, installierbar auf iOS (iPad/iPhone) und Android (Google Pixel/Samsung/etc.).
+
+---
+
+## 🔬 Sportbiologische & Konzeptionelle Grundlagen
+
+### 1. Retrograde Eichung vom Abitur
+Die Tabellen wurden retrograd ausgehend von den offiziellen Ausdauernormen des Ministeriums für Kultus, Jugend und Sport Baden-Württemberg für das Abitur entwickelt. Dadurch wird vermieden, dass Schülerinnen und Schüler in der Sekundarstufe I scheinbar gute Noten erhalten, beim Eintritt in die Kursstufe jedoch einen drastischen Leistungseinbruch erleben.
+
+### 2. Berücksichtigung der pubertären Entwicklungsdynamik
+- **Jungen:** Kontinuierliche lineare Steigerung der Ausdaueranforderungen von Klasse 5 bis Klasse 11 (+100 bis +150 m pro Schuljahr beim 12-Minuten-Lauf), bedingt durch den natürlichen Zuwachs an Muskelmasse, Herzschlagvolumen und Hämoglobin.
+- **Mädchen:** Stetige Steigerung in den Klassen 5 bis 7; ab Klasse 8/9 flacht der Anforderungszuwachs physiologisch begründet ab. Dies trägt dem biologisch bedingten Anstieg des relativen Körperfettanteils und der Stagnation der relativen $\text{VO}_2\text{max}$ pro Kilogramm Körpergewicht Rechnung.
+
+### 3. Physiologische Äquivalenz der Disziplinen
+Das 54-m-Volleyballfeld erfordert pro Runde vier scharfe 90°-Richtungswechsel. Das ständige Abbremsen und wiederholte Beschleunigen erhöht den energetischen Aufwand im Vergleich zum kontinuierlichen Lauf auf der 400-m-Tartanbahn. Die Tabellen enthalten daher einen Kurven- und Abbremsausgleich von ca. 5–7 %, sodass in allen drei Tests für die gleiche Note derselbe relative aerobe Beanspruchungsgrad erbracht werden muss.
+
+---
+
+## 📱 Installation als Progressive Web App (PWA)
+
+Die App benötigt keinen App Store und keine Installation über Drittanbieter:
+
+### 🍏 iPad / iPhone (Safari)
+1. Die Webseite in **Safari** öffnen.
+2. Auf das Teilen-Symbol tippen (Viereck mit Pfeil nach oben).
+3. **„Zum Home-Bildschirm“** auswählen und bestätigen.
+4. Die App startet nun im Vollbild ohne störende Browser-Adressleiste.
+
+### 🤖 Android (Google Chrome)
+1. Die Webseite in **Chrome** öffnen.
+2. Auf das Menü (⋮ oben rechts) tippen.
+3. **„App installieren“** oder **„Zum Startbildschirm hinzufügen“** wählen.
+4. Die App ist im Launcher verfügbar und dank Service Worker (`sw.js`) komplett offline im Stadion nutzbar.
+
+---
+
+## 🛠️ Technische Details
+
+- **Single-File-Architektur:** Vollständig eigenständige HTML-Datei inklusive eingebetteter Stile und Logik (`index.html`).
+- **Offline Service Worker (`sw.js`):** Network-First-Strategie mit 3-Sekunden-Timeout bei schwachem Netz und automatischem Fallback auf den Cache.
+- **Datensicherheit:** Keine externen CDNs, keine Tracker, keine Server-Übertragung. Alle Schülerdaten verbleiben ausschließlich im lokalen `localStorage` des Geräts.
+- **Barrierefreiheit & Robustheit:** Reines CSS-Routing für Basisfunktionen; auch bei deaktiviertem JavaScript bleiben alle Wertungstabellen vollständig einsehbar.
+
+---
+
+## 📄 Lizenz & Nutzung
+
+Entwickelt für die Fachschaft Sport am Dillmann-Gymnasium Stuttgart (DMG).  
+Freie Nutzung für Schulen und Lehrkräfte im Rahmen des Schulsports.
